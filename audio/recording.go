@@ -12,14 +12,26 @@ type Recording struct {
 	streamInfo *portaudio.StreamParameters
 	stream     *portaudio.Stream
 	startedAt  time.Time
+	file       *os.File
+	err        error
+	channels   int
+	sampleSize int
+	buffer     portaudio.Buffer
 }
 
+const (
+	aiffFORMSize       = 4
+	aiffCOMMSize       = 8 + 18
+	aiffSSNDHeaderSize = 16
+	paBufferSize       = 128
+)
+
 func (r *Recording) Start() error {
-	f, err := os.Create(r.path)
+	r.file, err = os.Create(r.path)
+	f := r.file
 	if err != nil {
 		return err
 	}
-	r.startedAt = time.Now()
 	// Form Chunk
 	_, err = f.WriteString("FORM")
 	if err != nil {
@@ -75,9 +87,63 @@ func (r *Recording) Start() error {
 	if err != nil {
 		return err
 	}
-	frameCount := 0
-	if err != nil {
-		return err
+	r.startedAt = time.Now()
+	switch sampleSize {
+	case 32:
+		r.buffer = make([][]int32, r.channels)
+		for c := 0; c < r.channels; c++ {
+			r.buffer[c] = make([]int32, paBufferSize)
+		}
+	case 24:
+		r.buffer = make([][]Int24, r.channels)
+		for _, c := range(r.buffer) {
+			c = make([]Int24, paBufferSize)
+		}
+	case 16:
+		r.buffer = make([][]int16, r.channels)
+		for _, c := range(r.buffer) {
+			
+		}
 	}
+	go r.run()
 	return nil
+}
+
+func (r *Recording) run() {
+	frameCount := 0
+	f := r.file
+	defer func() {
+		if r.err != nil {
+			return
+		}
+		bytesPerSample = r.sampleSize / 8
+		audioSize = framecount * r.channels * bytesPerSample
+		totalSize = aiffCOMMSize + aiffSSNDHeaderSize + audioSize + aiffFORMSize
+		_, r.err = f.Seek(4, 0)
+		if r.err != nil {
+			return
+		}
+		r.err = binary.Write(f, binary.BigEndian, int32(totalSize))
+		if r.err != nil {
+			return
+		}
+		_, r.err = f.Seek(22, 0)
+		if r.err != nil {
+			return
+		}
+		r.err = binary.Write(f, binary.BigEndian, int32(frameCount))
+		if r.err != nil {
+			return
+		}
+		_, r.err = f.Seek(42, 0)
+		if r.err != nil {
+			return
+		}
+		r.err = binary.Write(f, binary.BigEndian, int32(audioSize+8))
+		if r.err != nil {
+			return
+		}
+		r.err = f.Close()
+	}()
+
 }
