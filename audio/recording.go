@@ -262,4 +262,4 @@ func NewRecording(path string, params portaudio.StreamParameters, channels, samp
 
 func (r *Recording) Error() error {
 	return r.err
-]
+}
