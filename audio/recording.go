@@ -72,7 +72,7 @@ func (r *Recording) Start() error {
 	}
 	// Sound Data Chunk
 	_, err = f.WriteString("SSND")
-	if err != nil {
+y	if err != nil {
 		return err
 	}
 	err = binary.Write(f, binary.BigEndian, int32(0))
@@ -102,8 +102,16 @@ func (r *Recording) Start() error {
 	case 16:
 		r.buffer = make([][]int16, r.channels)
 		for _, c := range(r.buffer) {
-			
+			c = make([]int16, paBufferSize)
 		}
+	case 8:
+		r.buffer = make([][]int8, r.channels)
+		for _, c := range(r.buffer) {
+			c = make([]int8, paBufferSize)
+		}
+	default:
+		r.err = error("Invalid sample size")
+		return r.err
 	}
 	go r.run()
 	return nil
