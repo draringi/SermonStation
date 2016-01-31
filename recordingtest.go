@@ -54,7 +54,7 @@ func main() {
 	for {
 		fmt.Printf("How many channels? [1,%d] ", device.MaxInputChannels)
 		fmt.Scanf("%d", &chanCount)
-		if chanCount > 0 && chanCount <= dev.device.MaxInputChannels {
+		if chanCount > 0 && chanCount <= dev.MaxInputChannels {
 			break
 		} else {
 			fmt.Println("Invalid number of channels")
