@@ -3,21 +3,38 @@ package audio
 import (
 	"code.google.com/p/portaudio-go/portaudio"
 	"encoding/binary"
+	"errors"
 	"os"
 	"time"
 )
 
+type action int
+type Status int
+
 type Recording struct {
-	path       string
-	streamInfo *portaudio.StreamParameters
-	stream     *portaudio.Stream
-	startedAt  time.Time
-	file       *os.File
-	err        error
-	channels   int
-	sampleSize int
-	buffer     portaudio.Buffer
+	path        string
+	streamInfo  portaudio.StreamParameters
+	stream      *portaudio.Stream
+	startedAt   time.Time
+	file        *os.File
+	err         error
+	channels    int
+	sampleSize  int
+	buffer      portaudio.Buffer
+	actionQueue chan action
+	status      Status
 }
+
+const (
+	RECORDING Status = iota
+	STOPPED
+	PENDING
+)
+
+const (
+	stop action = iota
+	pause
+)
 
 const (
 	aiffFORMSize       = 4
@@ -27,90 +44,94 @@ const (
 )
 
 func (r *Recording) Start() error {
-	r.file, err = os.Create(r.path)
+	r.file, r.err = os.Create(r.path)
 	f := r.file
-	if err != nil {
-		return err
+	if r.err != nil {
+		return r.err
 	}
 	// Form Chunk
-	_, err = f.WriteString("FORM")
-	if err != nil {
-		return err
+	_, r.err = f.WriteString("FORM")
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(0))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(0))
+	if r.err != nil {
+		return r.err
 	}
-	_, err = f.WriteString("AIFF")
-	if err != nil {
-		return err
+	_, r.err = f.WriteString("AIFF")
+	if r.err != nil {
+		return r.err
 	}
 	// Common Chunk
-	_, err = f.WriteString("COMM")
-	if err != nil {
-		return err
+	_, r.err = f.WriteString("COMM")
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(18))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(18))
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int16(r.streamInfo.Input.Channels))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int16(r.channels))
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(0))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(0))
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int16(32))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int16(32))
+	if r.err != nil {
+		return r.err
 	}
-	_, err = f.Write([]byte{0x40, 0x0e, 0xac, 0x44, 0, 0, 0, 0, 0, 0})
-	if err != nil {
-		return err
+	_, r.err = f.Write([]byte{0x40, 0x0e, 0xac, 0x44, 0, 0, 0, 0, 0, 0})
+	if r.err != nil {
+		return r.err
 	}
 	// Sound Data Chunk
-	_, err = f.WriteString("SSND")
-y	if err != nil {
-		return err
+	_, r.err = f.WriteString("SSND")
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(0))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(0))
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(0))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(0))
+	if r.err != nil {
+		return r.err
 	}
-	err = binary.Write(f, binary.BigEndian, int32(0))
-	if err != nil {
-		return err
+	r.err = binary.Write(f, binary.BigEndian, int32(0))
+	if r.err != nil {
+		return r.err
 	}
 	r.startedAt = time.Now()
-	switch sampleSize {
+	switch r.sampleSize {
 	case 32:
-		r.buffer = make([][]int32, r.channels)
+		tmpBuffer := make([][]int32, r.channels)
 		for c := 0; c < r.channels; c++ {
-			r.buffer[c] = make([]int32, paBufferSize)
+			tmpBuffer[c] = make([]int32, paBufferSize)
 		}
+		r.buffer = tmpBuffer
 	case 24:
-		r.buffer = make([][]Int24, r.channels)
-		for _, c := range(r.buffer) {
-			c = make([]Int24, paBufferSize)
+		tmpBuffer := make([][]portaudio.Int24, r.channels)
+		for c := 0; c < r.channels; c++ {
+			tmpBuffer[c] = make([]portaudio.Int24, paBufferSize)
 		}
+		r.buffer = tmpBuffer
 	case 16:
-		r.buffer = make([][]int16, r.channels)
-		for _, c := range(r.buffer) {
-			c = make([]int16, paBufferSize)
+		tmpBuffer := make([][]int16, r.channels)
+		for c := 0; c < r.channels; c++ {
+			tmpBuffer[c] = make([]int16, paBufferSize)
 		}
+		r.buffer = tmpBuffer
 	case 8:
-		r.buffer = make([][]int8, r.channels)
-		for _, c := range(r.buffer) {
-			c = make([]int8, paBufferSize)
+		tmpBuffer := make([][]int8, r.channels)
+		for c := 0; c < r.channels; c++ {
+			tmpBuffer[c] = make([]int8, paBufferSize)
 		}
+		r.buffer = tmpBuffer
 	default:
-		r.err = error("Invalid sample size")
+		r.err = errors.New("Invalid sample size")
 		return r.err
 	}
 	go r.run()
@@ -124,9 +145,9 @@ func (r *Recording) run() {
 		if r.err != nil {
 			return
 		}
-		bytesPerSample = r.sampleSize / 8
-		audioSize = framecount * r.channels * bytesPerSample
-		totalSize = aiffCOMMSize + aiffSSNDHeaderSize + audioSize + aiffFORMSize
+		bytesPerSample := r.sampleSize / 8
+		audioSize := frameCount * r.channels * bytesPerSample
+		totalSize := aiffCOMMSize + aiffSSNDHeaderSize + audioSize + aiffFORMSize
 		_, r.err = f.Seek(4, 0)
 		if r.err != nil {
 			return
@@ -152,6 +173,91 @@ func (r *Recording) run() {
 			return
 		}
 		r.err = f.Close()
+		r.stream.Close()
+		r.status = STOPPED
 	}()
+	r.stream, r.err = portaudio.OpenStream(r.streamInfo, r.buffer)
+	if r.err != nil {
+		return
+	}
+	r.status = RECORDING
+	for {
+		switch r.sampleSize {
+		case 32:
+			tmpBuffer := r.buffer.([][]int32)
+			l := len(tmpBuffer)
+			for i := 0; i < l; i++ {
+				for j := 0; j < r.channels; j++ {
+					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
+					if r.err != nil {
+						return
+					}
+				}
+			}
+		case 24:
+			tmpBuffer := r.buffer.([][]portaudio.Int24)
+			l := len(tmpBuffer)
+			for i := 0; i < l; i++ {
+				for j := 0; j < r.channels; j++ {
+					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
+					if r.err != nil {
+						return
+					}
+				}
+			}
+		case 16:
+			tmpBuffer := r.buffer.([][]int16)
+			l := len(tmpBuffer)
+			for i := 0; i < l; i++ {
+				for j := 0; j < r.channels; j++ {
+					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
+					if r.err != nil {
+						return
+					}
+				}
+			}
+		case 8:
+			tmpBuffer := r.buffer.([][]int8)
+			l := len(tmpBuffer)
+			for i := 0; i < l; i++ {
+				for j := 0; j < r.channels; j++ {
+					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
+					if r.err != nil {
+						return
+					}
+				}
+			}
+		default:
+			r.err = errors.New("Invalid sample size")
+			return
+		}
+		select {
+		case action := <-r.actionQueue:
+			if action == stop {
+				return
+			}
+		}
+	}
+}
 
+func (r *Recording) Stop() error {
+	for {
+		if r.status == STOPPED {
+			return r.err
+		}
+	}
+}
+
+func (r *Recording) Status() Status {
+	return r.status
+}
+
+func NewRecording(path string, params portaudio.StreamParameters, channels, sampleSize int) *Recording {
+	r := new(Recording)
+	r.path = path
+	r.actionQueue = make(chan action, 4)
+	r.channels = channels
+	r.sampleSize = sampleSize
+	r.status = PENDING
+	return r
 }
