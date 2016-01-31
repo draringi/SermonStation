@@ -81,6 +81,7 @@ func main() {
 	for {
 		select {
 		case <-sig:
+			fmt.Println("Sending Stop Signal")
 			recorder.Stop()
 		default:
 		}

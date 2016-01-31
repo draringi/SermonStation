@@ -241,6 +241,7 @@ func (r *Recording) run() {
 }
 
 func (r *Recording) Stop() error {
+	r.actionQueue <- stop
 	for {
 		if r.status == STOPPED {
 			return r.err
