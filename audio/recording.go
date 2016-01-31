@@ -169,6 +169,10 @@ func (r *Recording) run() {
 		return
 	}
 	r.status = RECORDING
+	r.err = r.stream.Start()
+	if r.err != nil {
+		return
+	}
 	for {
 		r.stream.Read()
 		switch r.sampleSize {
