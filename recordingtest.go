@@ -88,6 +88,9 @@ func main() {
 		if recorder.Status() == audio.STOPPED {
 			fmt.Println("Recording Stopped")
 			break
+		} else if (recorder.Error() != nil) {
+			fmt.Printf("ERROR: %s\n", recorder.Error())
+			break
 		}
 	}
 }

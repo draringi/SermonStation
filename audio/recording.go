@@ -259,3 +259,7 @@ func NewRecording(path string, params portaudio.StreamParameters, channels, samp
 	r.status = PENDING
 	return r
 }
+
+func (r *Recording) Error() error {
+	return r.err
+]
