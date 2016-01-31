@@ -194,6 +194,7 @@ func (r *Recording) run() {
 					}
 				}
 			}
+			frameCount += l
 		case 24:
 			tmpBuffer := r.buffer.([][]portaudio.Int24)
 			l := len(tmpBuffer)
@@ -205,6 +206,7 @@ func (r *Recording) run() {
 					}
 				}
 			}
+			frameCount += l
 		case 16:
 			tmpBuffer := r.buffer.([][]int16)
 			l := len(tmpBuffer)
@@ -216,6 +218,7 @@ func (r *Recording) run() {
 					}
 				}
 			}
+			frameCount += l
 		case 8:
 			tmpBuffer := r.buffer.([][]int8)
 			l := len(tmpBuffer)
@@ -227,26 +230,20 @@ func (r *Recording) run() {
 					}
 				}
 			}
+			frameCount += l
 		default:
 			r.err = errors.New("Invalid sample size")
 			return
 		}
 		select {
-		case action := <-r.actionQueue:
-			if action == stop {
-				return
-			}
+		case <-r.actionQueue:
+			return
 		}
 	}
 }
 
-func (r *Recording) Stop() error {
+func (r *Recording) Stop() {
 	r.actionQueue <- stop
-	for {
-		if r.status == STOPPED {
-			return r.err
-		}
-	}
 }
 
 func (r *Recording) Status() Status {
@@ -256,7 +253,7 @@ func (r *Recording) Status() Status {
 func NewRecording(path string, params portaudio.StreamParameters, channels, sampleSize int) *Recording {
 	r := new(Recording)
 	r.path = path
-	r.actionQueue = make(chan action, 4)
+	r.actionQueue = make(chan action, 1)
 	r.channels = channels
 	r.sampleSize = sampleSize
 	r.status = PENDING
