@@ -1,9 +1,9 @@
 package audio
 
 import (
-	"github.com/gordonklaus/portaudio"
 	"encoding/binary"
 	"errors"
+	"github.com/gordonklaus/portaudio"
 	"os"
 	"time"
 )
@@ -79,7 +79,7 @@ func (r *Recording) Start() error {
 	if r.err != nil {
 		return r.err
 	}
-	r.err = binary.Write(f, binary.BigEndian, int16(32))
+	r.err = binary.Write(f, binary.BigEndian, int16(r.sampleSize))
 	if r.err != nil {
 		return r.err
 	}
@@ -107,28 +107,16 @@ func (r *Recording) Start() error {
 	r.startedAt = time.Now()
 	switch r.sampleSize {
 	case 32:
-		tmpBuffer := make([][]int32, r.channels)
-		for c := 0; c < r.channels; c++ {
-			tmpBuffer[c] = make([]int32, paBufferSize)
-		}
+		tmpBuffer := make([]int32, r.channels*paBufferSize)
 		r.buffer = tmpBuffer
 	case 24:
-		tmpBuffer := make([][]portaudio.Int24, r.channels)
-		for c := 0; c < r.channels; c++ {
-			tmpBuffer[c] = make([]portaudio.Int24, paBufferSize)
-		}
+		tmpBuffer := make([]portaudio.Int24, r.channels*paBufferSize)
 		r.buffer = tmpBuffer
 	case 16:
-		tmpBuffer := make([][]int16, r.channels)
-		for c := 0; c < r.channels; c++ {
-			tmpBuffer[c] = make([]int16, paBufferSize)
-		}
+		tmpBuffer := make([]int16, r.channels*paBufferSize)
 		r.buffer = tmpBuffer
 	case 8:
-		tmpBuffer := make([][]int8, r.channels)
-		for c := 0; c < r.channels; c++ {
-			tmpBuffer[c] = make([]int8, paBufferSize)
-		}
+		tmpBuffer := make([]int8, r.channels*paBufferSize)
 		r.buffer = tmpBuffer
 	default:
 		r.err = errors.New("Invalid sample size")
@@ -185,51 +173,35 @@ func (r *Recording) run() {
 		r.stream.Read()
 		switch r.sampleSize {
 		case 32:
-			tmpBuffer := r.buffer.([][]int32)
+			tmpBuffer := r.buffer.([]int32)
 			l := len(tmpBuffer)
-			for i := 0; i < l; i++ {
-				for j := 0; j < r.channels; j++ {
-					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
-					if r.err != nil {
-						return
-					}
-				}
+			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
+			if r.err != nil {
+				return
 			}
 			frameCount += l
 		case 24:
-			tmpBuffer := r.buffer.([][]portaudio.Int24)
+			tmpBuffer := r.buffer.([]portaudio.Int24)
 			l := len(tmpBuffer)
-			for i := 0; i < l; i++ {
-				for j := 0; j < r.channels; j++ {
-					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
-					if r.err != nil {
-						return
-					}
-				}
+			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
+			if r.err != nil {
+				return
 			}
 			frameCount += l
 		case 16:
-			tmpBuffer := r.buffer.([][]int16)
+			tmpBuffer := r.buffer.([]int16)
 			l := len(tmpBuffer)
-			for i := 0; i < l; i++ {
-				for j := 0; j < r.channels; j++ {
-					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
-					if r.err != nil {
-						return
-					}
-				}
+			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
+			if r.err != nil {
+				return
 			}
 			frameCount += l
 		case 8:
-			tmpBuffer := r.buffer.([][]int8)
+			tmpBuffer := r.buffer.([]int8)
 			l := len(tmpBuffer)
-			for i := 0; i < l; i++ {
-				for j := 0; j < r.channels; j++ {
-					r.err = binary.Write(f, binary.BigEndian, tmpBuffer[i][j])
-					if r.err != nil {
-						return
-					}
-				}
+			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
+			if r.err != nil {
+				return
 			}
 			frameCount += l
 		default:
