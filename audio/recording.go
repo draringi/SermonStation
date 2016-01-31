@@ -239,6 +239,8 @@ func (r *Recording) run() {
 		select {
 		case <-r.actionQueue:
 			return
+		default:
+
 		}
 	}
 }
