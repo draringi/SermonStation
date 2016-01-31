@@ -76,11 +76,11 @@ func main() {
 	signal.Notify(sig, os.Interrupt, os.Kill)
 	recorder := audio.NewRecording(path, params, chanCount, sampleSize)
 	fmt.Println("Starting Recording")
-	recorder.start()
+	recorder.Start()
 	fmt.Println("Recording")
 	for {
 		switch {
-		case <-sig:
+		case stopCmd := <-sig:
 			recorder.Stop()
 		case recorder.Status() == audio.STOPPED:
 			fmt.Println("Recording Stopped")
