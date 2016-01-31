@@ -79,13 +79,14 @@ func main() {
 	recorder.Start()
 	fmt.Println("Recording")
 	for {
-		switch {
-		case stopCmd := <-sig:
+		select {
+		case <-sig:
 			recorder.Stop()
-		case recorder.Status() == audio.STOPPED:
-			fmt.Println("Recording Stopped")
-			return
 		default:
+		}
+		if recorder.Status() == audio.STOPPED {
+			fmt.Println("Recording Stopped")
+			break
 		}
 	}
 }
