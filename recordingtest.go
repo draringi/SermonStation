@@ -2,7 +2,7 @@ package main
 
 import (
 	"./audio"
-	"code.google.com/p/portaudio-go/portaudio"
+	"github.com/gordonklaus/portaudio"
 	"fmt"
 	"os"
 	"os/signal"
