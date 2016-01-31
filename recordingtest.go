@@ -54,7 +54,7 @@ func main() {
 	for {
 		fmt.Printf("How many channels? [1,%d] ", device.MaxInputChannels)
 		fmt.Scanf("%d", &chanCount)
-		if chanCount > 0 && chanCount <= dev.MaxInputChannels {
+		if chanCount > 0 && chanCount <= device.MaxInputChannels {
 			break
 		} else {
 			fmt.Println("Invalid number of channels")
@@ -67,14 +67,14 @@ func main() {
 	var params portaudio.StreamParameters
 	var devParams portaudio.StreamDeviceParameters
 	devParams.Channels = chanCount
-	devParams.Device = dev
-	devParams.Latency = dev.DefaultLowInputLatency
-	params.SampleRate = dev.DefaultSampleRate
+	devParams.Device = device
+	devParams.Latency = device.DefaultLowInputLatency
+	params.SampleRate = device.DefaultSampleRate
 	params.FramesPerBuffer = 128
 	params.Input = devParams
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, os.Kill)
-	recorder = audio.NewRecording(path, params, chanCount, sampleSize)
+	recorder := audio.NewRecording(path, params, chanCount, sampleSize)
 	fmt.Println("Starting Recording")
 	recorder.start()
 	fmt.Println("Recording")
@@ -85,6 +85,7 @@ func main() {
 		case recorder.Status() == audio.STOPPED:
 			fmt.Println("Recording Stopped")
 			return
+		default:
 		}
 	}
 }
