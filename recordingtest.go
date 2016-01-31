@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./audio"
+	"github.com/draringi/SermonStation/audio"
 	"github.com/gordonklaus/portaudio"
 	"fmt"
 	"os"
