@@ -49,7 +49,7 @@ func getSampleSize() int {
 
 func main() {
 	device := getDevice()
-	fmt.Printf("Recording with %d\n", device.Name)
+	fmt.Printf("Recording with %s\n", device.Name)
 	var chanCount, sampleSize int
 	for {
 		fmt.Printf("How many channels? [1,%d] ", device.MaxInputChannels)
