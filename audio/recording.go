@@ -182,6 +182,7 @@ func (r *Recording) run() {
 	}
 	r.status = RECORDING
 	for {
+		r.stream.Read()
 		switch r.sampleSize {
 		case 32:
 			tmpBuffer := r.buffer.([][]int32)
@@ -257,6 +258,7 @@ func NewRecording(path string, params portaudio.StreamParameters, channels, samp
 	r.channels = channels
 	r.sampleSize = sampleSize
 	r.status = PENDING
+	r.streamInfo = params
 	return r
 }
 
