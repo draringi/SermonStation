@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/draringi/SermonStation/audio"
 	"github.com/gordonklaus/portaudio"
-	"fmt"
 	"os"
 	"os/signal"
 )
@@ -68,8 +68,8 @@ func main() {
 	var devParams portaudio.StreamDeviceParameters
 	devParams.Channels = chanCount
 	devParams.Device = device
-	devParams.Latency = device.DefaultLowInputLatency
-	params.SampleRate = device.DefaultSampleRate
+	devParams.Latency = device.DefaultHighInputLatency
+	params.SampleRate = 44100
 	params.FramesPerBuffer = 128
 	params.Input = devParams
 	sig := make(chan os.Signal, 1)
@@ -88,7 +88,7 @@ func main() {
 		if recorder.Status() == audio.STOPPED {
 			fmt.Println("Recording Stopped")
 			break
-		} else if (recorder.Error() != nil) {
+		} else if recorder.Error() != nil {
 			fmt.Printf("ERROR: %s\n", recorder.Error())
 			break
 		}

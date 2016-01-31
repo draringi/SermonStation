@@ -174,7 +174,7 @@ func (r *Recording) run() {
 		switch r.sampleSize {
 		case 32:
 			tmpBuffer := r.buffer.([]int32)
-			l := len(tmpBuffer)
+			l := len(tmpBuffer) / r.channels
 			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
 			if r.err != nil {
 				return
@@ -182,7 +182,7 @@ func (r *Recording) run() {
 			frameCount += l
 		case 24:
 			tmpBuffer := r.buffer.([]portaudio.Int24)
-			l := len(tmpBuffer)
+			l := len(tmpBuffer) / r.channels
 			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
 			if r.err != nil {
 				return
@@ -190,7 +190,7 @@ func (r *Recording) run() {
 			frameCount += l
 		case 16:
 			tmpBuffer := r.buffer.([]int16)
-			l := len(tmpBuffer)
+			l := len(tmpBuffer) / r.channels
 			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
 			if r.err != nil {
 				return
@@ -198,7 +198,7 @@ func (r *Recording) run() {
 			frameCount += l
 		case 8:
 			tmpBuffer := r.buffer.([]int8)
-			l := len(tmpBuffer)
+			l := len(tmpBuffer) / r.channels
 			r.err = binary.Write(f, binary.BigEndian, tmpBuffer)
 			if r.err != nil {
 				return
