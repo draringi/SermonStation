@@ -15,7 +15,7 @@ func getDevice() *portaudio.DeviceInfo {
 	}
 	for {
 		fmt.Println("Please Select an API")
-		for index, api = range hs {
+		for index, api := range hs {
 			fmt.Printf("%d: %s\n", index, api.Name)
 		}
 		var selection int
@@ -23,12 +23,12 @@ func getDevice() *portaudio.DeviceInfo {
 		fmt.Scanf("%d", &selection)
 		api := hs[selection]
 		fmt.Println("Please select an input device")
-		for index, dev = range hs.Devices {
+		for index, dev := range api.Devices {
 			fmt.Printf("%d: %s (%d channels)\n", index, dev.Name, dev.MaxInputChannels)
 		}
 		fmt.Printf("Device #: ")
 		fmt.Scanf("%d", &selection)
-		dev := ds.Devices[selection]
+		dev := api.Devices[selection]
 		return dev
 	}
 }
