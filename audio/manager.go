@@ -46,7 +46,7 @@ func NewManager() (m *Manager, err error) {
 	m = new(Manager)
 	m.device, err = portaudio.DefaultInputDevice()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	m.channels = m.device.MaxInputChannels
 	m.sampleSize = 32
