@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/draringi/SermonStation/audio"
+	"github.com/draringi/SermonStation/web"
 	"github.com/gordonklaus/portaudio"
 	"os"
 	"os/signal"
@@ -49,6 +50,7 @@ func getSampleSize() int {
 
 func main() {
 	defer portaudio.Terminate()
+	web.StartServer()
 	device := getDevice()
 	fmt.Printf("Recording with %s\n", device.Name)
 	var chanCount, sampleSize int
