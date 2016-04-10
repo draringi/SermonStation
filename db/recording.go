@@ -5,11 +5,11 @@ import (
 )
 
 type Recording struct {
-	rID int
-	at *time.Time
-	title string
+	rID      int
+	at       *time.Time
+	title    string
 	preacher *Preacher
-	path string
+	path     string
 }
 
 func (r *Recording) ID() int {
@@ -28,10 +28,10 @@ func (r *Recording) Preacher() *Preacher {
 	return r.preacher
 }
 
-func (r *Recording) Path() *string {
+func (r *Recording) Path() string {
 	return r.path
 }
 
-func newRecording(at *time.Time, path string) {
-	
+func newRecording(at *time.Time, path string) *Recording {
+	return nil
 }

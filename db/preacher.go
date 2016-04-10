@@ -1,7 +1,7 @@
 package db
 
 type Preacher struct {
-	pID int
+	pID  int
 	name string
 }
 
@@ -21,9 +21,10 @@ func newPreacher(name string) *Preacher {
 }
 
 func (p *Preacher) save() error {
-	if p>0 {
+	if p.pID > 0 {
 
 	} else {
-		
+
 	}
+	return nil
 }
