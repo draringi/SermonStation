@@ -50,7 +50,7 @@ func getSampleSize() int {
 
 func main() {
 	defer portaudio.Terminate()
-	web.StartServer()
+	web.StartServer(nil)
 	device := getDevice()
 	fmt.Printf("Recording with %s\n", device.Name)
 	var chanCount, sampleSize int
