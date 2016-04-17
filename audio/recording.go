@@ -163,7 +163,7 @@ func (r *Recording) run() {
 		if r.err != nil {
 			return
 		}
-		r.err = binary.Write(f, binary.BigEndian, int32(frameCount))
+		r.err = binary.Write(f, binary.BigEndian, int32(r.frameCount))
 		if r.err != nil {
 			return
 		}
