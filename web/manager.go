@@ -1,13 +1,17 @@
 package web
 
 import (
+	"github.com/draringi/SermonStation/audio"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 )
 
-func StartServer() {
+var audioManager *audio.Manager
+
+func StartServer(AudioManager *audio.Manager) {
 	router := getRouter()
+	audioManager = AudioManager
 	http.Handle("/", router)
 	go func() {
 		for {

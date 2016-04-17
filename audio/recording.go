@@ -23,6 +23,7 @@ type Recording struct {
 	buffer      portaudio.Buffer
 	actionQueue chan action
 	status      Status
+	frameCount  int
 }
 
 const (
@@ -30,6 +31,19 @@ const (
 	STOPPED
 	PENDING
 )
+
+func (s Status) String() string {
+	switch s {
+	case RECORDING:
+		return "Recording"
+	case STOPPED:
+		return "Stopped"
+	case PENDING:
+		return "Pending"
+	default"
+		return "Unknown"
+	}
+}
 
 const (
 	stop action = iota
@@ -127,14 +141,14 @@ func (r *Recording) Start() error {
 }
 
 func (r *Recording) run() {
-	frameCount := 0
+	r.frameCount = 0
 	f := r.file
 	defer func() {
 		if r.err != nil {
 			return
 		}
 		bytesPerSample := r.sampleSize / 8
-		audioSize := frameCount * r.channels * bytesPerSample
+		audioSize := r.frameCount * r.channels * bytesPerSample
 		totalSize := aiffCOMMSize + aiffSSNDHeaderSize + audioSize + aiffFORMSize
 		_, r.err = f.Seek(4, 0)
 		if r.err != nil {
@@ -183,7 +197,7 @@ func (r *Recording) run() {
 			if r.err != nil {
 				return
 			}
-			frameCount += l
+			r.frameCount += l
 		case 24:
 			tmpBuffer := r.buffer.([]portaudio.Int24)
 			l := len(tmpBuffer) / r.channels
@@ -191,7 +205,7 @@ func (r *Recording) run() {
 			if r.err != nil {
 				return
 			}
-			frameCount += l
+			r.frameCount += l
 		case 16:
 			tmpBuffer := r.buffer.([]int16)
 			l := len(tmpBuffer) / r.channels
@@ -199,7 +213,7 @@ func (r *Recording) run() {
 			if r.err != nil {
 				return
 			}
-			frameCount += l
+			r.frameCount += l
 		case 8:
 			tmpBuffer := r.buffer.([]int8)
 			l := len(tmpBuffer) / r.channels
@@ -207,7 +221,7 @@ func (r *Recording) run() {
 			if r.err != nil {
 				return
 			}
-			frameCount += l
+			r.frameCount += l
 		default:
 			r.err = errors.New("Invalid sample size")
 			return

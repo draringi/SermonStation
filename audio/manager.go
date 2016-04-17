@@ -68,6 +68,17 @@ func (m *Manager) NewRecording(path string) (*Recording, error) {
 	return m.recording, nil
 }
 
+func (m *Manager) Status() map[string]interface{} {
+	var status map[string]interface{}
+	if m.recording != nil {
+		status["status"] = m.recording.Status()
+		status["duration"] = m.recording.Duration()
+	} else {
+		status["status"] = "Stopped"
+	}
+	return status
+}
+
 func init() {
 	portaudio.Initialize()
 }
