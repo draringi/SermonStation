@@ -26,6 +26,7 @@ type Recording struct {
 	frameCount  int
 }
 
+// States for the recording
 const (
 	RECORDING Status = iota
 	STOPPED
@@ -40,7 +41,7 @@ func (s Status) String() string {
 		return "Stopped"
 	case PENDING:
 		return "Pending"
-	default"
+	default:
 		return "Unknown"
 	}
 }
@@ -241,6 +242,11 @@ func (r *Recording) Stop() {
 
 func (r *Recording) Status() Status {
 	return r.status
+}
+
+func (r *Recording) Duration() time.Duration {
+	nanoseconds := (float64(r.frameCount) / 44100) * float64(time.Second)
+	return time.Duration(nanoseconds)
 }
 
 func NewRecording(path string, params portaudio.StreamParameters, channels, sampleSize int) *Recording {
