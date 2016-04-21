@@ -6,12 +6,14 @@ import (
 )
 
 func status(w http.ResponseWriter, r *http.Request) {
-	var returnMap map[string]interface{}
 	encoder := json.NewEncoder(w)
 	if encoder == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	returnMap["status"] = audioManager.Status()
-	encoder.Encode(returnMap)
+	encoder.Encode(audioManager.Status())
+}
+
+func preachers(w http.ResponseWriter, r *http.Request) {
+	encoder := json.NewEncoder(w)
 }
