@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func status(w http.ResponseWriter, r *http.Request) {
+func statusHandler(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 	if encoder == nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -14,6 +14,6 @@ func status(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(audioManager.Status())
 }
 
-func preachers(w http.ResponseWriter, r *http.Request) {
+func preachersListHandler(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 }
