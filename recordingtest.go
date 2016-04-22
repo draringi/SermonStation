@@ -58,6 +58,7 @@ func main() {
 	web.StartServer(audioManager)
 	device := getDevice()
 	fmt.Printf("Recording with %s\n", device.Name)
+	audioManager.SetDevice(device)
 	var chanCount, sampleSize int
 	for {
 		fmt.Printf("How many channels? [1,%d] ", device.MaxInputChannels)
@@ -68,21 +69,18 @@ func main() {
 			fmt.Println("Invalid number of channels")
 		}
 	}
+	audioManager.SetChannelCount(chanCount)
 	sampleSize = getSampleSize()
+	audioManager.SetSampleSize(sampleSize)
 	var path string
 	fmt.Println("Where should the audio be saved to?")
 	fmt.Scanf("%s", &path)
-	var params portaudio.StreamParameters
-	var devParams portaudio.StreamDeviceParameters
-	devParams.Channels = chanCount
-	devParams.Device = device
-	devParams.Latency = device.DefaultHighInputLatency
-	params.SampleRate = 44100
-	params.FramesPerBuffer = 128
-	params.Input = devParams
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, os.Kill)
-	recorder := audio.NewRecording(path, params, chanCount, sampleSize)
+	recorder, err := audioManager.NewRecording(path)
+	if err != nil {
+		fmt.Printf("Error: %v", err)
+	}
 	fmt.Println("Starting Recording")
 	recorder.Start()
 	fmt.Println("Recording")

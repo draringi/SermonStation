@@ -12,8 +12,9 @@ type dbResponse struct {
 }
 
 type dbQuery struct {
-	query    string
-	response chan *dbResponse
+	query     string
+	arguments []interface{}
+	response  chan *dbResponse
 }
 
 type dbClass struct {
@@ -25,14 +26,15 @@ func (d *dbClass) answer() {
 	for {
 		q := <-d.queryChan
 		r := new(dbResponse)
-		r.rows, r.err = d.connection.Query(q.query)
+		r.rows, r.err = d.connection.Query(q.query, q.arguments...)
 		q.response <- r
 	}
 }
 
-func (d *dbClass) query(q string) (*sql.Rows, error) {
+func (d *dbClass) query(q string, args ...interface{}) (*sql.Rows, error) {
 	qStruct := new(dbQuery)
 	qStruct.query = q
+	qStruct.arguments = args
 	qStruct.response = make(chan *dbResponse, 1)
 	d.queryChan <- qStruct
 	response := <-qStruct.response
@@ -42,7 +44,7 @@ func (d *dbClass) query(q string) (*sql.Rows, error) {
 var connection *dbClass
 
 func ConnectToDatabase(user, database string) error {
-	connectionString := fmt.Sprintf("user=%s dbname=%s", user, database)
+	connectionString := fmt.Sprintf("user=%s dbname=%s host=/var/run/postgresql", user, database)
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		return err

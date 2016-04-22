@@ -2,7 +2,7 @@ package db
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	//"encoding/base64"
 )
 
 const (
@@ -25,7 +25,7 @@ func genSalt() ([]byte, error) {
 	b := make([]byte, SaltSize)
 	_, err := rand.Read(b)
 	if err != nil {
-		return nil,  err
+		return nil, err
 	}
 	return b, nil
 }
@@ -35,5 +35,5 @@ func CreateUser(username, password string) (*User, error) {
 }
 
 type kdf interface {
-	hash(password string, salt []byte, 
+	//hash(password string, salt []byte,
 }

@@ -1,4 +1,4 @@
-CREATE TABLE "users" if not exists (
+CREATE TABLE IF NOT EXISTS "users" (
 	uid SERIAL PRIMARY KEY,
 	username varchar(128) UNIQUE NOT NULL,
 	salt char(8) NOT NULL,
@@ -6,15 +6,15 @@ CREATE TABLE "users" if not exists (
 	parameters hstore
 );
 
-CREATE TABLE "preachers" IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS "preachers" (
 	pid SERIAL PRIMARY KEY,
-	name varchar(128) UNIQUE NOT NULL,
+	name varchar(128) UNIQUE NOT NULL CHECK (name <> '')
 );
 
-CREATE TABLE "recordings" IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS "recordings" (
 	rid SERIAL PRIMARY KEY,
-	date TIMESTAMP NOT NULL,
+	recorded_at TIMESTAMP NOT NULL,
 	title varchar(32) NOT NULL,
-	preacher int FORIEGN KEY(preachers) NOT NULL,
-	path varchar(128) NOT NULL,
+	preacher integer REFERENCES preachers NOT NULL,
+	path varchar(128) NOT NULL
 );

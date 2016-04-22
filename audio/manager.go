@@ -69,7 +69,7 @@ func (m *Manager) NewRecording(path string) (*Recording, error) {
 }
 
 func (m *Manager) Status() map[string]interface{} {
-	var status map[string]interface{}
+	status := make(map[string]interface{})
 	if m.recording != nil {
 		status["status"] = m.recording.Status()
 		status["duration"] = m.recording.Duration()
