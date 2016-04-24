@@ -18,11 +18,14 @@ func (p *Preacher) Name() string {
 	return p.name
 }
 
-func newPreacher(name string) *Preacher {
+func NewPreacher(name string) (*Preacher, error) {
 	p := new(Preacher)
 	p.name = name
-	p.save()
-	return p
+	err := p.save()
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 func (p *Preacher) save() error {
@@ -79,4 +82,22 @@ func (p *Preacher) MarshalJSON() ([]byte, error) {
 		p.pID,
 		p.name,
 	})
+}
+
+func PreacherByID(id int) (*Preacher, error) {
+	resp, err := connection.query("SELECT name FROM preachers WHERE pid = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Close()
+	if !resp.Next() {
+		return nil, errors.New("Something went wrong parsing the responce. Expected 1 row, got none.")
+	}
+	p := new(Preacher)
+	p.pID = id
+	err = resp.Scan(&p.name)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }

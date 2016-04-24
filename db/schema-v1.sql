@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS "users" (
 	uid SERIAL PRIMARY KEY,
-	username varchar(128) UNIQUE NOT NULL,
+	username varchar(128) UNIQUE NOT NULL CHECK (name <> ''),
 	salt char(8) NOT NULL,
-	algo varchar(16) NOT NULL,
+	algo varchar(16) NOT NULL CHECK (name <> ''),
 	parameters hstore
 );
 

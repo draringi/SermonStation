@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/gordonklaus/portaudio"
+	"log"
 	"os"
 	"time"
 )
@@ -59,6 +60,7 @@ const (
 )
 
 func (r *Recording) Start() error {
+	log.Printf("Starting Recording to %s (c: %d, b: %d)\n", r.path, r.channels, r.sampleSize)
 	r.file, r.err = os.Create(r.path)
 	f := r.file
 	if r.err != nil {
@@ -178,6 +180,7 @@ func (r *Recording) run() {
 		r.err = f.Close()
 		r.stream.Close()
 		r.status = STOPPED
+		log.Printf("Done recording to %s (%v)\n", r.path, r.Duration())
 	}()
 	r.stream, r.err = portaudio.OpenStream(r.streamInfo, r.buffer)
 	if r.err != nil {
