@@ -48,10 +48,14 @@ func NewManager() (m *Manager, err error) {
 	if err != nil {
 		return nil, err
 	}
-	m.channels = m.device.MaxInputChannels
-	m.sampleSize = 32
+	m.channels = 1
+	m.sampleSize = 16
 	// Future initialization code goes here...
 	return m, nil
+}
+
+func (m *Manager) Recording() *Recording {
+	return m.recording
 }
 
 func (m *Manager) Parameters() portaudio.StreamParameters {

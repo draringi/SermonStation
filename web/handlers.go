@@ -5,6 +5,7 @@ import (
 	"github.com/draringi/SermonStation/db"
 	"log"
 	"net/http"
+	"time"
 )
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,5 +66,81 @@ func newPreacherHandler(w http.ResponseWriter, r *http.Request) {
 		encoder.Encode(map[string]string{"error": err.Error()})
 	} else {
 		encoder.Encode(preacher)
+	}
+}
+
+func liveRecordingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	decoder := json.NewDecoder(r.Body)
+	if decoder == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	encoder := json.NewEncoder(w)
+	if encoder == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	data := new(struct {
+		Command  string
+		Preacher int
+		Keyword  string
+		Title    string
+	})
+	err := decoder.Decode(data)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	switch data.Command {
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+	case "new":
+		preacher, err := db.PreacherByID(data.Preacher)
+		if err != nil {
+			w.WriteHeader(http.StatusNotAcceptable)
+			encoder.Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		path := pathGenerator(preacher.Name(), data.Keyword, time.Now())
+		rec, err := audioManager.NewRecording(path)
+		if err != nil {
+			w.WriteHeader(http.StatusPaymentRequired)
+			encoder.Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		encoder.Encode(rec.Status())
+		return
+	case "start":
+		rec := audioManager.Recording()
+		if rec == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			encoder.Encode(map[string]string{"error": "No Active Recording"})
+                        return
+		}
+		err := rec.Start()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+        	        log.Println(err)
+	                return
+		}
+		encoder.Encode(rec.Status())
+		return
+	case "stop":
+		rec := audioManager.Recording()
+                if rec == nil {
+                        w.WriteHeader(http.StatusBadRequest)
+                        encoder.Encode(map[string]string{"error": "No Active Recording"})
+                        return
+                }
+                rec.Stop()
+                encoder.Encode(rec.Status())
+                return
+	case "get":
+		
 	}
 }

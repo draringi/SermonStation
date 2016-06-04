@@ -5,11 +5,21 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 )
+
+const (
+	defaultBaseDir = "/usr/local/www/sermons/recordings/"
+)
+
+var baseDir string = os.Getenv("SERMON_BASEDIR")
 
 var audioManager *audio.Manager
 
 func StartServer(AudioManager *audio.Manager) {
+	if baseDir == "" {
+		baseDir = defaultBaseDir
+	}
 	router := getRouter()
 	audioManager = AudioManager
 	http.Handle("/api/", router)

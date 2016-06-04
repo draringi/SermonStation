@@ -8,5 +8,6 @@ func getRouter() *mux.Router {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.HandleFunc("/status/", statusHandler)
 	r.HandleFunc("/preachers/", preachersListHandler)
+	r.HandleFunc("/preachers/add/", newPreacherHandler)
 	return r
 }
