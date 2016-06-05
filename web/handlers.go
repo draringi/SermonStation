@@ -5,6 +5,7 @@ import (
 	"github.com/draringi/SermonStation/db"
 	"log"
 	"net/http"
+	"path"
 	"time"
 )
 
@@ -106,8 +107,16 @@ func liveRecordingHandler(w http.ResponseWriter, r *http.Request) {
 			encoder.Encode(map[string]string{"error": err.Error()})
 			return
 		}
-		path := pathGenerator(preacher.Name(), data.Keyword, time.Now())
-		rec, err := audioManager.NewRecording(path)
+		startTime := time.Now()
+		webPath := pathGenerator(preacher.Name(), data.Keyword, startTime)
+		abdPath := path.Clean(baseDir + webPath)
+		dbRec, err := db.NewRecording(startTime, webPath, preacher)
+		if err != nil {
+			w.WriteHeader(http.http.StatusInternalServerError)
+			log.Println(err)
+			return
+		}
+		rec, err := audioManager.NewRecording(absPath)
 		if err != nil {
 			w.WriteHeader(http.StatusPaymentRequired)
 			encoder.Encode(map[string]string{"error": err.Error()})
@@ -120,27 +129,34 @@ func liveRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		if rec == nil {
 			w.WriteHeader(http.StatusBadRequest)
 			encoder.Encode(map[string]string{"error": "No Active Recording"})
-                        return
+			return
 		}
 		err := rec.Start()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-        	        log.Println(err)
-	                return
+			log.Println(err)
+			return
 		}
 		encoder.Encode(rec.Status())
 		return
 	case "stop":
 		rec := audioManager.Recording()
-                if rec == nil {
-                        w.WriteHeader(http.StatusBadRequest)
-                        encoder.Encode(map[string]string{"error": "No Active Recording"})
-                        return
-                }
-                rec.Stop()
-                encoder.Encode(rec.Status())
-                return
+		if rec == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			encoder.Encode(map[string]string{"error": "No Active Recording"})
+			return
+		}
+		rec.Stop()
+		encoder.Encode(rec.Status())
+		return
 	case "get":
-		
+		rec := audioManager.Recording()
+		if rec == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			encoder.Encode(map[string]string{"error": "No Active Recording"})
+			return
+		}
+		encoder.Encode(rec)
+		return
 	}
 }

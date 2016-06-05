@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultBaseDir = "/usr/local/www/sermons/recordings/"
+	defaultBaseDir = "/usr/local/www/sermons/"
 )
 
 var baseDir string = os.Getenv("SERMON_BASEDIR")

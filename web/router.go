@@ -9,5 +9,6 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/status/", statusHandler)
 	r.HandleFunc("/preachers/", preachersListHandler)
 	r.HandleFunc("/preachers/add/", newPreacherHandler)
+	r.HandleFunc("/recording/", liveRecordingHandler)
 	return r
 }
